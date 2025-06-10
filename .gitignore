@@ -30,3 +30,8 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+CLAUDE.md
+
+sheets2json
+go.sum
+version.txt
