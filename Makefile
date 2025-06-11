@@ -15,13 +15,15 @@ endif
 # Complete version string
 VERSION_STRING := sheets2json $(VERSION_NUM) [$(GIT_COMMIT)] ($(BUILD_DATE))
 
-.PHONY: build clean distclean version help fmt lint test
+.PHONY: build clean version help fmt lint test
 
 # Default target
 build: version
 	@echo "Building sheets2json..."
 	@echo "$(VERSION_STRING)" > version.txt
 	@docker run --rm \
+		-u "$$(id -u):$$(id -g)" \
+		-e HOME=/tmp \
 		-v "$${PWD}":/src \
 		-v go-mod-cache:/go/pkg/mod \
 		-w /src \
@@ -42,14 +44,11 @@ clean:
 	@echo "Cleaning build artifacts..."
 	@rm -f sheets2json version.txt
 
-# Clean all Go-related files for repository commit
-distclean: clean
-	@echo "Cleaning Go-related files..."
-	@go clean -modcache || echo "No module cache to clean"
-
 # Format Go code
 fmt:
 	@docker run --rm \
+		-u "$$(id -u):$$(id -g)" \
+		-e HOME=/tmp \
 		-v "$${PWD}":/src \
 		-v go-mod-cache:/go/pkg/mod \
 		-w /src \
@@ -58,6 +57,8 @@ fmt:
 # Lint Go code
 lint:
 	@docker run --rm \
+		-u "$$(id -u):$$(id -g)" \
+		-e HOME=/tmp \
 		-v "$${PWD}":/src \
 		-v go-mod-cache:/go/pkg/mod \
 		-w /src \
@@ -66,6 +67,8 @@ lint:
 # Run tests
 test:
 	@docker run --rm \
+		-u "$$(id -u):$$(id -g)" \
+		-e HOME=/tmp \
 		-v "$${PWD}":/src \
 		-v go-mod-cache:/go/pkg/mod \
 		-w /src \
@@ -80,5 +83,4 @@ help:
 	@echo "  make test      - Run tests"
 	@echo "  make version   - Show version information"
 	@echo "  make clean     - Remove build artifacts"
-	@echo "  make distclean - Remove all Go-related files for repository commit"
 	@echo "  make help      - Show this help message"
