@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -131,9 +132,28 @@ func main() {
 	}
 }
 
-func convertToJSON(values [][]interface{}) []map[string]interface{} {
+// OrderedRow represents a row with ordered keys
+type OrderedRow struct {
+	Keys   []string
+	Values map[string]interface{}
+}
+
+// MarshalJSON implements json.Marshaler to maintain key order
+func (r OrderedRow) MarshalJSON() ([]byte, error) {
+	// Build JSON manually to preserve order
+	items := make([]string, 0, len(r.Keys))
+	for _, key := range r.Keys {
+		value := r.Values[key]
+		keyJSON, _ := json.Marshal(key)
+		valueJSON, _ := json.Marshal(value)
+		items = append(items, fmt.Sprintf("%s:%s", keyJSON, valueJSON))
+	}
+	return []byte("{" + strings.Join(items, ",") + "}"), nil
+}
+
+func convertToJSON(values [][]interface{}) []OrderedRow {
 	if len(values) == 0 {
-		return []map[string]interface{}{}
+		return []OrderedRow{}
 	}
 
 	// First row as headers
@@ -143,15 +163,18 @@ func convertToJSON(values [][]interface{}) []map[string]interface{} {
 	}
 
 	// Convert remaining rows
-	result := make([]map[string]interface{}, 0, len(values)-1)
+	result := make([]OrderedRow, 0, len(values)-1)
 	for _, row := range values[1:] {
-		obj := make(map[string]interface{})
+		obj := OrderedRow{
+			Keys:   headers,
+			Values: make(map[string]interface{}),
+		}
 		for i, header := range headers {
 			if i < len(row) {
 				// Keep original type if possible
-				obj[header] = row[i]
+				obj.Values[header] = row[i]
 			} else {
-				obj[header] = ""
+				obj.Values[header] = ""
 			}
 		}
 		result = append(result, obj)
