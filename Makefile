@@ -22,8 +22,6 @@ build: version
 	@echo "Building sheets2json..."
 	@echo "$(VERSION_STRING)" > version.txt
 	@docker run --rm \
-		-u "$$(id -u):$$(id -g)" \
-		-e HOME=/tmp \
 		-v "$${PWD}":/src \
 		-v go-mod-cache:/go/pkg/mod \
 		-w /src \
@@ -31,7 +29,8 @@ build: version
 		go mod tidy && \
 		go build -ldflags=\"-s -w \
 			-X 'main.versionString=\$$(cat version.txt)'\" \
-		-o sheets2json main.go"
+		-o sheets2json main.go && \
+		chown $$(id -u):$$(id -g) sheets2json"
 	@echo "Binary created: ./sheets2json"
 
 # Show version info
@@ -67,8 +66,6 @@ lint:
 # Run tests
 test:
 	@docker run --rm \
-		-u "$$(id -u):$$(id -g)" \
-		-e HOME=/tmp \
 		-v "$${PWD}":/src \
 		-v go-mod-cache:/go/pkg/mod \
 		-w /src \

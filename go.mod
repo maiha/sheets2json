@@ -3,6 +3,7 @@ module sheets2json
 go 1.21
 
 require (
+	github.com/spf13/pflag v1.0.5
 	golang.org/x/oauth2 v0.18.0
 	google.golang.org/api v0.169.0
 )

@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/spf13/pflag"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
@@ -21,11 +21,11 @@ var versionString = "sheets2json"
 func main() {
 
 	var (
-		credentialFile = flag.String("c", "", "Path to credential JSON file")
-		outputFile     = flag.String("o", "", "Output file (default: stdout)")
-		showVersion    = flag.Bool("version", false, "Show version information")
+		credentialFile = pflag.StringP("credential", "c", "", "Path to credential JSON file")
+		outputFile     = pflag.StringP("output", "o", "", "Output file (default: stdout)")
+		showVersion    = pflag.Bool("version", false, "Show version information")
 	)
-	flag.Parse()
+	pflag.Parse()
 
 	// Handle version flag
 	if *showVersion {
@@ -33,21 +33,24 @@ func main() {
 		os.Exit(0)
 	}
 
-	if flag.NArg() < 1 {
-		fmt.Fprintf(os.Stderr, "Usage: sheets2json [OPTIONS] SPREADSHEET_ID [WORKSHEET] [RANGE]\n")
-		flag.PrintDefaults()
+	if pflag.NArg() < 1 {
+		fmt.Fprintf(os.Stderr, "Usage: sheets2json [-c CREDENTIAL_FILE] [-o OUTPUT_FILE] [--version] SPREADSHEET_ID [WORKSHEET] [RANGE]\n\n")
+		fmt.Fprintf(os.Stderr, "Options:\n")
+		fmt.Fprintf(os.Stderr, "  -c, --credential string   Path to credential JSON file\n")
+		fmt.Fprintf(os.Stderr, "  -o, --output string       Output file (default: stdout)\n")
+		fmt.Fprintf(os.Stderr, "      --version             Show version information\n")
 		os.Exit(1)
 	}
 
-	spreadsheetID := flag.Arg(0)
+	spreadsheetID := pflag.Arg(0)
 	worksheetArg := ""
 	rangeArg := ""
 
-	if flag.NArg() >= 2 {
-		worksheetArg = flag.Arg(1)
+	if pflag.NArg() >= 2 {
+		worksheetArg = pflag.Arg(1)
 	}
-	if flag.NArg() >= 3 {
-		rangeArg = flag.Arg(2)
+	if pflag.NArg() >= 3 {
+		rangeArg = pflag.Arg(2)
 	}
 
 	// Get credentials
